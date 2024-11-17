@@ -1,5 +1,6 @@
 from src import PALETTE
 from src import Boid
+from src import BOID_VEL
 from random import choice
 import numpy as np
 import time
@@ -15,7 +16,8 @@ def _norm(x):
 
 class Food:
     def __init__(self, pos=None, color=None, size=5):
-        self.pos = pos or np.random.uniform(-1, 1, size=2) * 400  # Adjust range as needed
+        # Use np.array directly to handle the position
+        self.pos = pos if pos is not None else np.random.uniform(-1, 1, size=2) * 400  # Adjust range as needed
         self.color = color or PALETTE["food"]  # Ensure PALETTE has a 'food' color
         self.size = size
 
@@ -41,7 +43,7 @@ class Universe():
                  cohes=1,
                  food_weight=1.5,
                  food_spawn_interval=3,
-                 food_dist=100.0):
+                 food_dist=200.0):
         self.boids = []
         self.food = []
         self.canvas = canvas
@@ -73,7 +75,33 @@ class Universe():
             self.add_boid()
 
     def spawn_food(self):
-        food = Food()
+        grid_size = 100  # Size of each grid cell
+        canvas_size = np.array(self.canvas.size)  # Ensure canvas size is a numpy array
+        num_cells = np.floor(canvas_size / grid_size).astype(int)  # Number of cells in each dimension
+
+        # Initialize grid densities
+        grid = np.zeros(num_cells)
+
+        # Calculate grid cell indices for each boid
+        for boid in self.boids:
+            grid_x = int(boid.pos[0] // grid_size)  # Adjust if needed for canvas offset
+            grid_y = int(boid.pos[1] // grid_size)
+
+            # Ensure indices are within bounds
+            grid_x = np.clip(grid_x, 0, num_cells[0] - 1)
+            grid_y = np.clip(grid_y, 0, num_cells[1] - 1)
+
+            grid[grid_x, grid_y] += 1  # Increment density for the cell
+
+        # Find the cell with the fewest boids
+        least_dense_cell = np.unravel_index(np.argmin(grid), grid.shape)
+
+        # Calculate the center position of the least dense cell
+        food_position = np.array([least_dense_cell[0] * grid_size + grid_size / 2, 
+                                least_dense_cell[1] * grid_size + grid_size / 2])
+
+        # Spawn food at the calculated position
+        food = Food(pos=food_position)
         self.food.append(food)
 
     def get_nearby(self, boid):
@@ -138,9 +166,13 @@ class Universe():
         # Calculate food attraction
         if self.food:
             closest_food = min(self.food, key=lambda f: boid.dist(f.pos))
-            if boid.dist(closest_food.pos) <= self.view_dist:
+            if boid.dist(closest_food.pos) <= self.food_dist:
                 direction_to_food = closest_food.pos - boid.pos
                 food_attraction = _norm(direction_to_food)
+                
+                boid.speed = BOID_VEL * 2
+            else:
+                boid.speed = BOID_VEL
 
         # Combine all behaviors
         sum_vector = (_norm(avoid_walls) +
@@ -203,9 +235,6 @@ class Universe():
         boid.pos = (boid.pos + self.canvas.size) % (2 * self.canvas.size) - self.canvas.size
 
     def loop(self):
-        try:
-            while self.canvas.is_open():
-                self.draw()
-                self.tick()
-        except Exception as e:
-            print(e)
+        while self.canvas.is_open():
+            self.draw()
+            self.tick()
