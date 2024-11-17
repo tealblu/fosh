@@ -1,0 +1,4 @@
+[tool.pyright]
+venv = "venv"
+reportMissingTypeStubs = false
+useLibraryCodeForTypes = true
