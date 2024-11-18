@@ -28,7 +28,7 @@ class Universe():
                  align=1,
                  cohes=1,
                  food_weight=1.5,
-                 food_spawn_interval=3,
+                 food_spawn_interval=30,
                  food_dist=300):
         self.foshs = []
         self.food = []
@@ -80,6 +80,7 @@ class Universe():
         min_x = int(min_x * 0.9)
         min_y = int(min_y * 0.9)
 
+        loops = 0
         while True:
             # Generate random position for food within canvas bounds
             x_pos = random.randint(min_x, max_x - 1) * grid_size
@@ -91,6 +92,11 @@ class Universe():
                     is_near_fosh = True
                     
             if not is_near_fosh:
+                break
+            
+            loops += 1
+            if loops > 100:
+                print("Could not spawn food optimally. Spawning randomly.")
                 break
 
         food_position = np.array([x_pos, y_pos])
@@ -165,9 +171,11 @@ class Universe():
                 direction_to_food = closest_food.pos - fosh.pos
                 food_attraction = _norm(direction_to_food)
                 
-                fosh.speed = FOSH_VEL * 2
+                if fosh.speed < FOSH_VEL * 2:
+                    fosh.speed *= 1.05
         else:
-            fosh.speed = FOSH_VEL
+            if fosh.speed > FOSH_VEL:
+                fosh.speed *= 0.95
 
         # Combine all behaviors
         sum_vector = (_norm(avoid_walls) +
