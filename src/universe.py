@@ -55,7 +55,7 @@ class Universe():
         color = color or choice(PALETTE["accents"])
         pos = pos or self.canvas.size * (1 - 2 * np.random.random(self.canvas.size.shape))
         angle = angle or (2 * np.pi * np.random.random())
-        self.foshs.append(fosh(color, pos, angle))
+        self.foshs.append(fosh(self.canvas, color, pos, angle))
 
     def populate(self, n):
         for _ in range(n):
@@ -202,7 +202,9 @@ class Universe():
             fosh.draw(self.canvas)
         for food in self.food:
             food.draw(self.canvas)
-        self.canvas.update()
+        
+        if self.canvas.update() == False:
+            self.canvas.closed = True
 
     def tick(self):
         # Spawn food at intervals

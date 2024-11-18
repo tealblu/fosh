@@ -19,9 +19,11 @@ if __name__ == "__main__":
                         default=30.0,
                         help="the (maximum) framerate")
     parser.add_argument("--res",
-                        type=str,
-                        default="1920x1080",
-                        help="the resolution")
+        type=str,
+        default="1920x1080",
+        help="the resolution in format WIDTHxHEIGHT (e.g. 1920x1080)",
+        metavar="WxH")
+
     parser.add_argument("--highlight",
                         action="store_true",
                         help="highlight a single fosh")
@@ -88,7 +90,3 @@ if __name__ == "__main__":
 
         u.populate(args.n)
         u.loop()
-        
-    # delete file if wanted
-    if args.preview_only or input("Save video? (Y/n) ").lower() == "n":
-        remove(canvas.filename)

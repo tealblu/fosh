@@ -8,11 +8,12 @@ def _unit_vector(angle):
 
 
 class fosh():
-    def __init__(self, color, pos, angle=0, speed=FOSH_VEL):
+    def __init__(self, canvas, color, pos, angle=0, speed=FOSH_VEL, sprite_path="./src/fosh.png"):
         self.pos = np.array(pos, dtype="float")
         self.angle = angle % (2 * np.pi)
         self.color = color
         self.speed = speed
+        self.sprite = canvas.load_sprite(sprite_path)
 
     @property
     def dir(self):
@@ -38,21 +39,19 @@ class fosh():
         self.turn_by(min(a, b, key=lambda x: np.abs(x)), dt)
 
     def draw(self, canvas):
-        tip = self.pos + FOSH_NOSE_LEN * _unit_vector(self.angle)
-        left = self.pos + FOSH_NOSE_LEN / 1.5 * _unit_vector(self.angle + np.pi / 4)
-        right = self.pos + FOSH_NOSE_LEN / 1.5 * _unit_vector(self.angle - np.pi / 4)
-        bottom = self.pos  # The bottom point is the same as the axis
+        """
+        Draws the Fosh on the canvas using the sprite.
+
+        :param canvas: Canvas object to render the Fosh.
+        """
+        # Sprite scaling factor (adjust as needed for desired size)
+        scale = FOSH_NOSE_LEN / self.sprite.shape[0]
         
-        tail_len = FOSH_TAIL_LEN
-        tail_pos = self.pos - tail_len * _unit_vector(self.angle)
-        tail_angle = self.angle + np.pi
-        tail = tail_pos - tail_len * _unit_vector(tail_angle)
-        tail_left = tail_pos - tail_len / 2 * _unit_vector(tail_angle + 2 * np.pi / 3)
-        tail_right = tail_pos - tail_len / 2 * _unit_vector(tail_angle - 2 * np.pi / 3)
-        
-        canvas.draw_poly([tail, tail_left, tail_right], self.color)
-        
-        canvas.draw_poly([tip, left, bottom, right], self.color)
+        # Convert angle (radians) to degrees for rotation
+        rotation_deg = np.degrees(self.angle)
+
+        # Draw the sprite
+        canvas.draw_sprite(self.sprite, position=self.pos, scale=scale, rotation=rotation_deg)
 
     def tick(self, dt):
         self.pos += self.vel * dt
