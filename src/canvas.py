@@ -9,7 +9,7 @@ TRANSLATION = np.array((SCALE, -SCALE))  # y coord is negative as the y axis is 
 
 
 class Canvas():
-    def __init__(self, res, fps):
+    def __init__(self, res, fps, video = False):
         # output related
         self.res = np.array(res, dtype="int")
         self.fps = float(fps)
@@ -19,14 +19,20 @@ class Canvas():
         # renderer
         self.filename = OUT_DIR + strftime('%Y%m%dT%H%M%S', localtime()) + ".mp4"
         self.title = f"foshs - Preview - {self.filename}"
-        self.video = VideoWriter(self.filename, FourCC(*"mp4v"), int(self.fps), tuple(self.res))
+        
+        if video:
+            self.video = VideoWriter(self.filename, FourCC(*"mp4v"), int(self.fps), tuple(self.res))
+        else:
+            self.video = None
      
     def __enter__(self):
         return self
 
     def __exit__(self, *args, **kwargs):
         cv2.destroyWindow(self.title)
-        self.video.release()
+        
+        if self.video is not None:
+            self.video.release()
 
     @property
     def size(self):
@@ -45,7 +51,8 @@ class Canvas():
         return np.ndarray(shape=(*self.res[::-1], 3), dtype="uint8")
 
     def update(self):
-        self.video.write(self.current_frame)
+        if self.video is not None:
+            self.video.write(self.current_frame)
         cv2.imshow(self.title, self.current_frame)
         self.current_frame = self.new_frame()
 

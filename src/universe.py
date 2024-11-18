@@ -1,9 +1,12 @@
 from src import PALETTE
 from src import fosh
+from src.food import Food
 from src import FOSH_VEL
 from random import choice
 import numpy as np
 import time
+
+
 
 
 def _angle(x):
@@ -13,24 +16,6 @@ def _angle(x):
 def _norm(x):
     return x if np.allclose(x, 0) else x / np.linalg.norm(x)
 
-
-class Food:
-    def __init__(self, pos=None, color=None, size=5):
-        # Use np.array directly to handle the position
-        self.pos = pos if pos is not None else np.random.uniform(-1, 1, size=2) * 400  # Adjust range as needed
-        self.color = color or PALETTE["food"]  # Ensure PALETTE has a 'food' color
-        self.size = size
-
-    def draw(self, canvas):
-        # Create a diamond shape for the food
-        size = self.size  # Half-length of the diamond's diagonal
-        top = self.pos + np.array([0, size])
-        bottom = self.pos + np.array([0, -size])
-        left = self.pos + np.array([-size, 0])
-        right = self.pos + np.array([size, 0])
-        canvas.draw_poly([top, right, bottom, left], self.color)
-
-
 class Universe():
     def __init__(self,
                  canvas,
@@ -38,12 +23,12 @@ class Universe():
                  nearby_method="dist",
                  view_dist=80.0,
                  num_neighbors=5,
-                 sep=1,
+                 sep=1.5,
                  align=1,
                  cohes=1,
                  food_weight=1.5,
-                 food_spawn_interval=3,
-                 food_dist=200.0):
+                 food_spawn_interval=30,
+                 food_dist=500):
         self.foshs = []
         self.food = []
         self.canvas = canvas
@@ -62,6 +47,7 @@ class Universe():
 
         self.food_spawn_interval = food_spawn_interval  # in seconds
         self.last_food_spawn_time = time.time()
+        self.last_food_pos = None
         self.food_dist = food_dist
 
     def add_fosh(self, color=None, pos=None, angle=None):
@@ -100,9 +86,25 @@ class Universe():
         food_position = np.array([least_dense_cell[0] * grid_size + grid_size / 2, 
                                 least_dense_cell[1] * grid_size + grid_size / 2])
 
+        # Ensure new food position is not too close to the last food position
+        if self.last_food_pos is not None:
+            max_retries = 100  # Prevent infinite loop
+            retries = 0
+            while np.linalg.norm(food_position - self.last_food_pos) < grid_size * 2 and retries < max_retries:
+                # Recalculate food position if too close to last one
+                least_dense_cell = np.unravel_index(np.argmin(grid), grid.shape)
+                food_position = np.array([least_dense_cell[0] * grid_size + grid_size / 2, 
+                                        least_dense_cell[1] * grid_size + grid_size / 2])
+                retries += 1
+            if retries == max_retries:
+                print("Warning: Could not find a suitable food position after retries.")
+
+
         # Spawn food at the calculated position
+        self.last_food_pos = food_position
         food = Food(pos=food_position)
-        self.food.append(food)
+        self.food = food.sprinkle(self.canvas, food_position, 10, self.food)
+
 
     def get_nearby(self, fosh):
         if self.nearby_method == "dist":
@@ -171,8 +173,8 @@ class Universe():
                 food_attraction = _norm(direction_to_food)
                 
                 fosh.speed = FOSH_VEL * 2
-            else:
-                fosh.speed = FOSH_VEL
+        else:
+            fosh.speed = FOSH_VEL
 
         # Combine all behaviors
         sum_vector = (_norm(avoid_walls) +
