@@ -85,11 +85,13 @@ class Universe():
             x_pos = random.randint(min_x, max_x - 1) * grid_size
             y_pos = random.randint(min_y, max_y - 1) * grid_size
             
+            is_near_fosh = False
             for fosh in self.foshs:
-                if fosh.dist(np.array([x_pos, y_pos])) < self.food_dist:
-                    continue
-                else:
-                    break
+                if fosh.dist(np.array([x_pos, y_pos])) < 3:
+                    is_near_fosh = True
+                    
+            if not is_near_fosh:
+                break
 
         food_position = np.array([x_pos, y_pos])
         food = Food(pos=food_position)
