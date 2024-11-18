@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from os import remove
 from src import PALETTE, DEFAULT_NUM_NEIGHBORS, DEFAULT_VIEW_DIST
-from src import Universe, Canvas, Boid
+from src import Universe, Canvas, fosh
 
 
 if __name__ == "__main__":
@@ -13,7 +13,7 @@ if __name__ == "__main__":
                         dest="n",
                         type=int,
                         default=60,
-                        help="the number of boids in the simulation")
+                        help="the number of foshs in the simulation")
     parser.add_argument("--fps",
                         type=float,
                         default=30.0,
@@ -24,7 +24,7 @@ if __name__ == "__main__":
                         help="the resolution")
     parser.add_argument("--highlight",
                         action="store_true",
-                        help="highlight a single boid")
+                        help="highlight a single fosh")
     parser.add_argument("--preview-only",
                         dest="preview_only",
                         action="store_true",
@@ -53,21 +53,21 @@ if __name__ == "__main__":
                         type=str,
                         choices={"avoid", "wrap"},
                         default="avoid",
-                        help="the behaviour of the boids near edges, either avoid them or just wrap around to the other side")
+                        help="the behaviour of the foshs near edges, either avoid them or just wrap around to the other side")
 
-    # what method to use to decide which boids are close ('nearby')
+    # what method to use to decide which foshs are close ('nearby')
     group = parser.add_mutually_exclusive_group()
     group.add_argument("--dist",
                        nargs="?",
                        type=float,
                        const=DEFAULT_VIEW_DIST,
-                       help=f"all boids which are at most DIST units away from the current boid can be seen (defaults to {DEFAULT_VIEW_DIST})")
+                       help=f"all foshs which are at most DIST units away from the current fosh can be seen (defaults to {DEFAULT_VIEW_DIST})")
     group.add_argument("--count",
                        dest="num_neighbors",
                        nargs="?",
                        type=int,
                        const=DEFAULT_NUM_NEIGHBORS,
-                       help=f"the COUNT closest boids are seen by the current boid (defaults to {DEFAULT_NUM_NEIGHBORS})")
+                       help=f"the COUNT closest foshs are seen by the current fosh (defaults to {DEFAULT_NUM_NEIGHBORS})")
     
     args = parser.parse_args()
 
@@ -83,7 +83,7 @@ if __name__ == "__main__":
                      cohes=args.cohes)
 
         if args.highlight:
-            u.add_boid(color=PALETTE["highlight"], pos=(0, 0))
+            u.add_fosh(color=PALETTE["highlight"], pos=(0, 0))
             args.n -= 1
 
         u.populate(args.n)

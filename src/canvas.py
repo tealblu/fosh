@@ -18,7 +18,7 @@ class Canvas():
 
         # renderer
         self.filename = OUT_DIR + strftime('%Y%m%dT%H%M%S', localtime()) + ".mp4"
-        self.title = f"Boids - Preview - {self.filename}"
+        self.title = f"foshs - Preview - {self.filename}"
         self.video = VideoWriter(self.filename, FourCC(*"mp4v"), int(self.fps), tuple(self.res))
      
     def __enter__(self):

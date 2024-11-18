@@ -1,5 +1,5 @@
 from random import choice
-from src import BOID_VEL, BOID_NOSE_LEN, BOID_TURN_SPEED, PALETTE, BOID_TAIL_LEN
+from src import fosh_VEL, fosh_NOSE_LEN, fosh_TURN_SPEED, PALETTE, fosh_TAIL_LEN
 import numpy as np
 
 
@@ -7,8 +7,8 @@ def _unit_vector(angle):
     return np.array([np.cos(angle), np.sin(angle)], dtype="float")
 
 
-class Boid():
-    def __init__(self, color, pos, angle=0, speed=BOID_VEL):
+class fosh():
+    def __init__(self, color, pos, angle=0, speed=fosh_VEL):
         self.pos = np.array(pos, dtype="float")
         self.angle = angle % (2 * np.pi)
         self.color = color
@@ -27,7 +27,7 @@ class Boid():
 
     def turn_by(self, dangle, dt):
         # dont turn too fast
-        self.angle += np.clip(dangle, -dt * BOID_TURN_SPEED, dt * BOID_TURN_SPEED)
+        self.angle += np.clip(dangle, -dt * fosh_TURN_SPEED, dt * fosh_TURN_SPEED)
 
         # keep angle in range [0, 2pi)
         self.angle %= 2 * np.pi
@@ -38,12 +38,12 @@ class Boid():
         self.turn_by(min(a, b, key=lambda x: np.abs(x)), dt)
 
     def draw(self, canvas):
-        tip = self.pos + BOID_NOSE_LEN * _unit_vector(self.angle)
-        left = self.pos + BOID_NOSE_LEN / 1.5 * _unit_vector(self.angle + np.pi / 4)
-        right = self.pos + BOID_NOSE_LEN / 1.5 * _unit_vector(self.angle - np.pi / 4)
+        tip = self.pos + fosh_NOSE_LEN * _unit_vector(self.angle)
+        left = self.pos + fosh_NOSE_LEN / 1.5 * _unit_vector(self.angle + np.pi / 4)
+        right = self.pos + fosh_NOSE_LEN / 1.5 * _unit_vector(self.angle - np.pi / 4)
         bottom = self.pos  # The bottom point is the same as the axis
         
-        tail_len = BOID_TAIL_LEN
+        tail_len = fosh_TAIL_LEN
         tail_pos = self.pos - tail_len * _unit_vector(self.angle)
         tail_angle = self.angle + np.pi
         tail = tail_pos - tail_len * _unit_vector(tail_angle)
