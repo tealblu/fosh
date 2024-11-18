@@ -5,10 +5,10 @@ import numpy as np
 DEFAULT_VIEW_DIST = 80.0
 DEFAULT_NUM_NEIGHBORS = 5
 
-fosh_VEL = 90
-fosh_NOSE_LEN = 30
-fosh_TURN_SPEED = 3.6
-fosh_TAIL_LEN = 10
+FOSH_VEL = 90
+FOSH_NOSE_LEN = 30
+FOSH_TURN_SPEED = 3.6
+FOSH_TAIL_LEN = 10
 
 OUT_DIR = join(".", "out", "")
 SCALE = 1.0  # in px/unit

@@ -1,6 +1,6 @@
 from src import PALETTE
 from src import fosh
-from src import fosh_VEL
+from src import FOSH_VEL
 from random import choice
 import numpy as np
 import time
@@ -170,9 +170,9 @@ class Universe():
                 direction_to_food = closest_food.pos - fosh.pos
                 food_attraction = _norm(direction_to_food)
                 
-                fosh.speed = fosh_VEL * 2
+                fosh.speed = FOSH_VEL * 2
             else:
-                fosh.speed = fosh_VEL
+                fosh.speed = FOSH_VEL
 
         # Combine all behaviors
         sum_vector = (_norm(avoid_walls) +
