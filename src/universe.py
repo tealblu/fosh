@@ -1,3 +1,4 @@
+import random
 from src import PALETTE
 from src import fosh
 from src.food import Food
@@ -27,8 +28,8 @@ class Universe():
                  align=1,
                  cohes=1,
                  food_weight=1.5,
-                 food_spawn_interval=30,
-                 food_dist=500):
+                 food_spawn_interval=3,
+                 food_dist=300):
         self.foshs = []
         self.food = []
         self.canvas = canvas
@@ -60,50 +61,33 @@ class Universe():
         for _ in range(n):
             self.add_fosh()
 
+    
     def spawn_food(self):
         grid_size = 100  # Size of each grid cell
         canvas_size = np.array(self.canvas.size)  # Ensure canvas size is a numpy array
-        num_cells = np.floor(canvas_size / grid_size).astype(int)  # Number of cells in each dimension
 
-        # Initialize grid densities
-        grid = np.zeros(num_cells)
+        # Cast the result to integer for the random.randint
+        max_x = int(canvas_size[0] // grid_size)
+        max_y = int(canvas_size[1] // grid_size)
+        
+        # minimum x and y are the negative canvas size
+        min_x = 0 - int(canvas_size[0] // grid_size)
+        min_y = 0 - int(canvas_size[1] // grid_size)
+        
+        # Cut off the most extreme 10% of the canvas
+        max_x = int(max_x * 0.9)
+        max_y = int(max_y * 0.9)
+        min_x = int(min_x * 0.9)
+        min_y = int(min_y * 0.9)
 
-        # Calculate grid cell indices for each fosh
-        for fosh in self.foshs:
-            grid_x = int(fosh.pos[0] // grid_size)  # Adjust if needed for canvas offset
-            grid_y = int(fosh.pos[1] // grid_size)
+        # Generate random position for food within canvas bounds
+        x_pos = random.randint(min_x, max_x - 1) * grid_size
+        y_pos = random.randint(min_y, max_y - 1) * grid_size
 
-            # Ensure indices are within bounds
-            grid_x = np.clip(grid_x, 0, num_cells[0] - 1)
-            grid_y = np.clip(grid_y, 0, num_cells[1] - 1)
-
-            grid[grid_x, grid_y] += 1  # Increment density for the cell
-
-        # Find the cell with the fewest foshs
-        least_dense_cell = np.unravel_index(np.argmin(grid), grid.shape)
-
-        # Calculate the center position of the least dense cell
-        food_position = np.array([least_dense_cell[0] * grid_size + grid_size / 2, 
-                                least_dense_cell[1] * grid_size + grid_size / 2])
-
-        # Ensure new food position is not too close to the last food position
-        if self.last_food_pos is not None:
-            max_retries = 100  # Prevent infinite loop
-            retries = 0
-            while np.linalg.norm(food_position - self.last_food_pos) < grid_size * 2 and retries < max_retries:
-                # Recalculate food position if too close to last one
-                least_dense_cell = np.unravel_index(np.argmin(grid), grid.shape)
-                food_position = np.array([least_dense_cell[0] * grid_size + grid_size / 2, 
-                                        least_dense_cell[1] * grid_size + grid_size / 2])
-                retries += 1
-            if retries == max_retries:
-                print("Warning: Could not find a suitable food position after retries.")
-
-
-        # Spawn food at the calculated position
-        self.last_food_pos = food_position
+        food_position = np.array([x_pos, y_pos])
         food = Food(pos=food_position)
         self.food = food.sprinkle(self.canvas, food_position, 10, self.food)
+
 
 
     def get_nearby(self, fosh):
