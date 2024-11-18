@@ -80,9 +80,16 @@ class Universe():
         min_x = int(min_x * 0.9)
         min_y = int(min_y * 0.9)
 
-        # Generate random position for food within canvas bounds
-        x_pos = random.randint(min_x, max_x - 1) * grid_size
-        y_pos = random.randint(min_y, max_y - 1) * grid_size
+        while True:
+            # Generate random position for food within canvas bounds
+            x_pos = random.randint(min_x, max_x - 1) * grid_size
+            y_pos = random.randint(min_y, max_y - 1) * grid_size
+            
+            for fosh in self.foshs:
+                if fosh.dist(np.array([x_pos, y_pos])) < self.food_dist:
+                    continue
+                else:
+                    break
 
         food_position = np.array([x_pos, y_pos])
         food = Food(pos=food_position)
