@@ -88,7 +88,3 @@ if __name__ == "__main__":
 
         u.populate(args.n)
         u.loop()
-        
-    # delete file if wanted
-    if args.preview_only or input("Save video? (Y/n) ").lower() == "n":
-        remove(canvas.filename)

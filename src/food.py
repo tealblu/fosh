@@ -19,12 +19,13 @@ class Food:
         right = self.pos + np.array([size, 0])
         canvas.draw_poly([top, right, bottom, left], self.color)
         
-    def sprinkle(self, canvas, pos, x_count, food):
+    def sprinkle(self, canvas, pos, x_count, food, food_spawn_chance):
         for _ in range(x_count):
-            # Randomly offset each food particle around the provided position
-            new_pos = pos + np.random.uniform(-30, 30, size=2)  # Small random offset around the 'pos'
-            sprinkle_food = Food(pos=new_pos, color=self.color, size=self.size)
-            sprinkle_food.draw(canvas)
-            food.append(sprinkle_food)
+            if np.random.random() < food_spawn_chance:
+                # Randomly offset each food particle around the provided position
+                new_pos = pos + np.random.uniform(-30, 30, size=2)  # Small random offset around the 'pos'
+                sprinkle_food = Food(pos=new_pos, color=self.color, size=self.size)
+                sprinkle_food.draw(canvas)
+                food.append(sprinkle_food)
             
         return food

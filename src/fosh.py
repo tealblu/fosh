@@ -1,5 +1,6 @@
+import datetime
 from random import choice
-from src import FOSH_VEL, FOSH_NOSE_LEN, FOSH_TURN_SPEED, PALETTE, FOSH_TAIL_LEN
+from src import FOSH_VEL, FOSH_TURN_SPEED, PALETTE, FOSH_TAIL_LEN, FOSH_SIZE, SATURATION
 import numpy as np
 
 
@@ -13,6 +14,7 @@ class fosh():
         self.angle = angle % (2 * np.pi)
         self.color = color
         self.speed = speed
+        self.last_bite = datetime.datetime.now() - datetime.timedelta(seconds=SATURATION)
 
     @property
     def dir(self):
@@ -21,6 +23,10 @@ class fosh():
     @property
     def vel(self):
         return self.speed * self.dir
+        
+    @property
+    def is_hungry(self):
+        return datetime.datetime.now() - self.last_bite > datetime.timedelta(seconds=SATURATION)
 
     def dist(self, pos):
         return np.linalg.norm(self.pos - pos)
@@ -38,21 +44,26 @@ class fosh():
         self.turn_by(min(a, b, key=lambda x: np.abs(x)), dt)
 
     def draw(self, canvas):
-        tip = self.pos + FOSH_NOSE_LEN * _unit_vector(self.angle)
-        left = self.pos + FOSH_NOSE_LEN / 1.5 * _unit_vector(self.angle + np.pi / 4)
-        right = self.pos + FOSH_NOSE_LEN / 1.5 * _unit_vector(self.angle - np.pi / 4)
-        bottom = self.pos  # The bottom point is the same as the axis
-        
-        tail_len = FOSH_TAIL_LEN
-        tail_pos = self.pos - tail_len * _unit_vector(self.angle)
+        # Draw the circular body
+        circle_center = self.pos
+        circle_radius = FOSH_SIZE
+        canvas.draw_circle(circle_radius, circle_center, self.color)
+
+        # Calculate the tail position on the edge of the circle
+        tail_mesh = 10
+        tail_base = circle_center - ( circle_radius - tail_mesh ) * _unit_vector(self.angle)
         tail_angle = self.angle + np.pi
-        tail = tail_pos - tail_len * _unit_vector(tail_angle)
-        tail_left = tail_pos - tail_len / 2 * _unit_vector(tail_angle + 2 * np.pi / 3)
-        tail_right = tail_pos - tail_len / 2 * _unit_vector(tail_angle - 2 * np.pi / 3)
+        tail_tip = tail_base
         
-        canvas.draw_poly([tail, tail_left, tail_right], self.color)
+        # Calculate the left and right points for the tail
+        spread_angle = np.pi / 8 # reduce to make points closer
+        tail_left = tail_base + FOSH_TAIL_LEN * _unit_vector(tail_angle + spread_angle)
+        tail_right = tail_base + FOSH_TAIL_LEN * _unit_vector(tail_angle - spread_angle)
         
-        canvas.draw_poly([tip, left, bottom, right], self.color)
+        # Draw the tail
+        tail = [tail_tip, tail_left, tail_right]
+        canvas.draw_poly(tail, self.color)
+
 
     def tick(self, dt):
         self.pos += self.vel * dt

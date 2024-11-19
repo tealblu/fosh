@@ -1,3 +1,4 @@
+import datetime
 import random
 from src import PALETTE
 from src import fosh
@@ -29,6 +30,7 @@ class Universe():
                  cohes=1,
                  food_weight=1.5,
                  food_spawn_interval=30,
+                 food_spawn_chance=0.1,
                  food_dist=300):
         self.foshs = []
         self.food = []
@@ -47,6 +49,7 @@ class Universe():
         }
 
         self.food_spawn_interval = food_spawn_interval  # in seconds
+        self.food_spawn_chance = food_spawn_chance
         self.last_food_spawn_time = time.time()
         self.last_food_pos = None
         self.food_dist = food_dist
@@ -54,7 +57,7 @@ class Universe():
     def add_fosh(self, color=None, pos=None, angle=None):
         color = color or choice(PALETTE["accents"])
         pos = pos or self.canvas.size * (1 - 2 * np.random.random(self.canvas.size.shape))
-        angle = angle or (2 * np.pi * np.random.random())
+        angle = int(angle or (2 * np.pi * np.random.random()))
         self.foshs.append(fosh(color, pos, angle))
 
     def populate(self, n):
@@ -101,7 +104,7 @@ class Universe():
 
         food_position = np.array([x_pos, y_pos])
         food = Food(pos=food_position)
-        self.food = food.sprinkle(self.canvas, food_position, 10, self.food)
+        self.food = food.sprinkle(self.canvas, food_position, 50, self.food, self.food_spawn_chance)
 
 
 
@@ -136,12 +139,12 @@ class Universe():
         crowding_radius = 150  # Larger radius to evaluate total density
 
         # Calculate fosh behaviors
-        if len(nearby) != 0:
-            for i, other in enumerate(nearby):
-                diff = other.pos - fosh.pos
+        if len(nearby) != 0: # type: ignore
+            for i, other in enumerate(nearby): # type: ignore
+                diff = other.pos - fosh.pos # type: ignore
 
                 avg_pos += (diff - avg_pos) / (i + 1)  # running average for cohesion
-                avg_dir += (other.dir - avg_dir) / (i + 1)  # running average for alignment
+                avg_dir += (other.dir - avg_dir) / (i + 1)  # type: ignore # running average for alignment
                 avoid_foshs -= diff / np.dot(diff, diff)  # separation
 
             # Normalize behaviors
@@ -171,8 +174,12 @@ class Universe():
                 direction_to_food = closest_food.pos - fosh.pos
                 food_attraction = _norm(direction_to_food)
                 
-                if fosh.speed < FOSH_VEL * 2:
-                    fosh.speed *= 1.05
+                if fosh.is_hungry:
+                    if fosh.speed < FOSH_VEL * 6:
+                        fosh.speed *= 1.08
+                else:
+                    if fosh.speed < FOSH_VEL * 3:
+                        fosh.speed *= 1.02
         else:
             if fosh.speed > FOSH_VEL:
                 fosh.speed *= 0.95
@@ -232,6 +239,8 @@ class Universe():
                 if fosh.dist(food.pos) < consumption_radius:
                     self.food.remove(food)
                     # Optionally, add behaviors like increasing fosh's speed or energy
+                    fosh.speed *= 1.5
+                    fosh.last_bite = datetime.datetime.now()
                     break  # Assuming one food consumed at a time
 
     def wrap(self, fosh):

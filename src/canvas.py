@@ -1,4 +1,3 @@
-from cv2 import VideoWriter, VideoWriter_fourcc as FourCC
 from src import SCALE, OUT_DIR
 from time import strftime, localtime
 import cv2
@@ -67,3 +66,6 @@ class Canvas():
                      [np.array([self.to_px(p) for p in points])],  # double list as fillPoly expects a list of polygons
                      color,
                      16)  # = antialiased
+    
+    def draw_circle(self, size, pos, color):
+        cv2.circle(self.current_frame, self.to_px(pos), size, color, -1)
